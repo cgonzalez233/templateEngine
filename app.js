@@ -10,26 +10,155 @@ const outputPath = path.join(OUTPUT_DIR, "team.html");
 
 const render = require("./lib/htmlRenderer");
 
+const util = require("util");
 
-// Write code to use inquirer to gather information about the development team members,
-// and to create objects for each team member (using the correct classes as blueprints!)
+const writeFileAsync = util.promisify(fs.writeFile);
 
-// After the user has input all employees desired, call the `render` function (required
-// above) and pass in an array containing all employee objects; the `render` function will
-// generate and return a block of HTML including templated divs for each employee!
+const team = [];
 
-// After you have your html, you're now ready to create an HTML file using the HTML
-// returned from the `render` function. Now write it to a file named `team.html` in the
-// `output` folder. You can use the variable `outputPath` above target this location.
-// Hint: you may need to check if the `output` folder exists and create it if it
-// does not.
+// array of questions for user
+function teamMaker() {
+  const createManager = async () => {
+    inquirer
+      .prompt([
+        {
+          type: "input",
+          name: "managerName",
+          message: "What is the name of the Manager?",
+        },
+        {
+          type: "input",
+          name: "managerId",
+          message: "What is the ID of the Manager?",
+        },
+        {
+          type: "input",
+          name: "managerEmail",
+          message: "What is the email of the Manager?",
+        },
+        {
+          type: "input",
+          name: "managerOffice",
+          message: "What is the office number of the Manager?",
+        },
+      ])
+      .then((answers) => {
+        const manager = new Manager(
+          answers.managerName,
+          answers.managerId,
+          answers.managerEmail,
+          answers.managerOffice
+        );
+        team.push(manager);
+        addTeam();
+      });
+  };
 
-// HINT: each employee type (manager, engineer, or intern) has slightly different
-// information; write your code to ask different questions via inquirer depending on
-// employee type.
+  const createEngineer = async () => {
+    inquirer
+      .prompt([
+        {
+          type: "input",
+          name: "engineerName",
+          message: "What is the name of the Engineer?",
+        },
+        {
+          type: "input",
+          name: "engineerId",
+          message: "What is the ID of the Engineer?",
+        },
+        {
+          type: "input",
+          name: "engineerEmail",
+          message: "What is the email of the Engineer?",
+        },
+        {
+          type: "input",
+          name: "engineerGithub",
+          message: "What is the Github username of the Engineer?",
+        },
+      ])
+      .then((answers) => {
+        const engineer = new Engineer(
+          answers.engineerName,
+          answers.engineerId,
+          answers.engineerEmail,
+          answers.engineer
+        );
+        team.push(engineer);
+        addTeam();
+      });
+  };
 
-// HINT: make sure to build out your classes first! Remember that your Manager, Engineer,
-// and Intern classes should all extend from a class named Employee; see the directions
-// for further information. Be sure to test out each class and verify it generates an
-// object with the correct structure and methods. This structure will be crucial in order
-// for the provided `render` function to work! ```
+  const createIntern = async () => {
+    inquirer
+      .prompt([
+        {
+          type: "input",
+          name: "internName",
+          message: "What is the name of the Intern?",
+        },
+        {
+          type: "input",
+          name: "internId",
+          message: "What is the ID of the Intern?",
+        },
+        {
+          type: "input",
+          name: "internEmail",
+          message: "What is the email of the Intern?",
+        },
+        {
+          type: "input",
+          name: "internSchool",
+          message: "What school does the Intern go to?",
+        },
+      ])
+      .then((answers) => {
+        const intern = new Intern(
+          answers.internName,
+          answers.internId,
+          answers.internEmail,
+          answers.internSchool
+        );
+        team.push(intern);
+        addTeam();
+      });
+  };
+
+  function addTeam() {
+    inquirer
+      .prompt([
+        {
+          type: "list",
+          name: "addMember",
+          message: "Would you like to add more team members?",
+          choices: ["Engineer", "Intern", "I have my full team"],
+        },
+      ])
+      .then((userChoice) => {
+        switch (userChoice.addMember) {
+          case "Engineer":
+            createEngineer();
+            break;
+          case "Intern":
+            createIntern();
+            break;
+          default:
+            buildTeam();
+        }
+      });
+  }
+
+  function buildTeam() {
+    const HTML = render(team);
+
+    writeFileAsync("team.html", HTML);
+
+    console.log("Successfully wrote to index.html");
+  }
+  createManager();
+}
+
+// function call to initialize program
+teamMaker();
